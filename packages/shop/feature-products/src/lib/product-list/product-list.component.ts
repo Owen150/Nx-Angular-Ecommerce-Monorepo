@@ -22,8 +22,8 @@ import {
   template: `
     <div class="product-list-container">
       <header class="page-header">
-        <h1>Our Products</h1>
-        <p>Explore our wide selection of high-quality products</p>
+        <h1>TyapTech</h1>
+        <p>Explore our wide selection of high-quality products and services</p>
       </header>
 
       <div class="filters-section">
@@ -38,6 +38,15 @@ import {
         </div>
 
         <div class="filter-controls">
+          <label class="checkbox-label">
+            <input
+              type="checkbox"
+              [(ngModel)]="inStockOnly"
+              (ngModelChange)="onFilterChange()"
+            />
+            In Stock Only
+          </label>
+
           <select
             [(ngModel)]="selectedCategory"
             (ngModelChange)="onFilterChange()"
@@ -57,15 +66,6 @@ import {
             <option value="asc">Price: Low to High</option>
             <option value="desc">Price: High to Low</option>
           </select>
-
-          <label class="checkbox-label">
-            <input
-              type="checkbox"
-              [(ngModel)]="inStockOnly"
-              (ngModelChange)="onFilterChange()"
-            />
-            In Stock Only
-          </label>
 
           <div class="price-filters">
             <label class="price-input-group">
