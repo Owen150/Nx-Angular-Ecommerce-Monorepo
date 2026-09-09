@@ -190,7 +190,6 @@ import {
       justify-content: center;
       align-items: center;
       gap: 16px;
-      margin-top: 48px;
       padding-top: 24px;
       border-top: 1px solid #e0e0e0;
     }

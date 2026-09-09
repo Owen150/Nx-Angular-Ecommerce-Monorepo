@@ -42,7 +42,7 @@ import { LoadingSpinnerComponent, ErrorMessageComponent } from '@org/shop/shared
           </div>
 
           <div class="product-info-section">
-            <div class="product-category">{{ product()!.category }}</div>
+            <!-- <div class="product-category">{{ product()!.category }}</div> -->
             <h1 class="product-name">{{ product()!.name }}</h1>
 
             <div class="product-rating">
@@ -66,6 +66,17 @@ import { LoadingSpinnerComponent, ErrorMessageComponent } from '@org/shop/shared
             <div class="product-description">
               <h2>Description</h2>
               <p>{{ product()!.description }}</p>
+              <div class="product-info">
+                <!-- <h3>Product Information</h3> -->
+                <dl>
+                  <dt>Category:</dt>
+                  <dd>{{ product()!.category }}</dd>
+                  <dt>Product ID:</dt>
+                  <dd>{{ product()!.id }}</dd>
+                  <dt>Availability:</dt>
+                  <dd>{{ product()!.inStock ? 'In Stock' : 'Out of Stock' }}</dd>
+                </dl>
+              </div>
             </div>
 
             <div class="product-actions">
@@ -83,17 +94,17 @@ import { LoadingSpinnerComponent, ErrorMessageComponent } from '@org/shop/shared
               }
             </div>
 
-            <div class="product-info">
+            <!-- <div class="product-info">
               <h3>Product Information</h3>
               <dl>
-                <dt>Product ID:</dt>
-                <dd>{{ product()!.id }}</dd>
                 <dt>Category:</dt>
                 <dd>{{ product()!.category }}</dd>
+                <dt>Product ID:</dt>
+                <dd>{{ product()!.id }}</dd>
                 <dt>Availability:</dt>
                 <dd>{{ product()!.inStock ? 'In Stock' : 'Out of Stock' }}</dd>
               </dl>
-            </div>
+            </div> -->
           </div>
         </div>
       }
@@ -101,8 +112,8 @@ import { LoadingSpinnerComponent, ErrorMessageComponent } from '@org/shop/shared
   `,
   styles: [`
     .product-detail-container {
-      max-width: 1200px;
-      margin: 0 auto;
+      // max-width: 1200px;
+      // margin: 0 auto;
       padding: 24px;
     }
 
@@ -125,21 +136,23 @@ import { LoadingSpinnerComponent, ErrorMessageComponent } from '@org/shop/shared
     .product-detail {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 48px;
-      background: white;
-      border-radius: 8px;
+      gap: 18px;
+      // background: white;
+      // border-radius: 8px;
       overflow: hidden;
     }
 
     .product-image-section {
       position: relative;
+      justify-content: center;
+      align-items: center;
     }
 
     .product-image {
       width: 100%;
       height: auto;
-      border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      // border-radius: 8px;
+      // box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     }
 
     .out-of-stock-badge {
@@ -156,7 +169,7 @@ import { LoadingSpinnerComponent, ErrorMessageComponent } from '@org/shop/shared
     .product-info-section {
       display: flex;
       flex-direction: column;
-      gap: 24px;
+      gap: 10px;
     }
 
     .product-category {
@@ -273,8 +286,10 @@ import { LoadingSpinnerComponent, ErrorMessageComponent } from '@org/shop/shared
     }
 
     .product-info {
-      background: #f8f9fa;
-      padding: 20px;
+      // background: #f8f9fa;
+      // padding: 20px;
+      margin-top: 10px;
+      margin-bottom: 10px;
       border-radius: 8px;
     }
 
@@ -287,7 +302,7 @@ import { LoadingSpinnerComponent, ErrorMessageComponent } from '@org/shop/shared
     .product-info dl {
       display: grid;
       grid-template-columns: 120px 1fr;
-      gap: 12px;
+      // gap: 6px;
       margin: 0;
     }
 
