@@ -49,6 +49,15 @@ import {
             }
           </select>
 
+          <select
+            [(ngModel)]="sortOrder"
+            (ngModelChange)="onSortChange()"
+            class="filter-select"
+          >
+            <option value="asc">Price: Low to High</option>
+            <option value="desc">Price: High to Low</option>
+          </select>
+
           <label class="checkbox-label">
             <input
               type="checkbox"
@@ -58,16 +67,33 @@ import {
             In Stock Only
           </label>
 
-          <select
-            [(ngModel)]="selectedCategory"
-            (ngModelChange)="onFilterChange()"
-            class="filter-select"
-          >
-            <option value="">Filter by Price</option>
-            @for (category of categories(); track category) {
-              <option [value]="category">{{ category }}</option>
-            }
-          </select>
+          <div class="price-filters">
+            <label class="price-input-group">
+              <span>Min Price</span>
+              <input
+                type="number"
+                [min]="priceRange().min"
+                [max]="priceRange().max"
+                [placeholder]="0"
+                [(ngModel)]="minimumPrice"
+                (ngModelChange)="onFilterChange()"
+                class="price-input"
+              />
+            </label>
+
+            <label class="price-input-group">
+              <span>Max Price</span>
+              <input
+                type="number"
+                [min]="priceRange().min"
+                [max]="priceRange().max"
+                [placeholder]="0"
+                [(ngModel)]="maximumPrice"
+                (ngModelChange)="onFilterChange()"
+                class="price-input"
+              />
+            </label>
+          </div>
         </div>
       </div>
 
@@ -191,6 +217,30 @@ import {
       cursor: pointer;
     }
 
+    .price-filters {
+      display: flex;
+      gap: 50px;
+      align-items: flex-end;
+      flex-wrap: wrap;
+    }
+
+    .price-input-group {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      gap: 6px;
+      color: #666;
+    }
+
+    .price-input {
+      width: 140px;
+      padding: 8px 12px;
+      font-size: 1rem;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      background: white;
+    }
+
     .results-info {
       color: #666;
       margin-bottom: 16px;
@@ -258,12 +308,14 @@ export class ProductListComponent implements OnInit {
   readonly currentPage = signal(1);
   readonly totalPages = signal(0);
   readonly categories = signal<string[]>([]);
+  readonly priceRange = signal({ min: 0, max: 1000 });
   readonly loading = signal(false);
   readonly error = signal<string | null>(null);
 
   // Filter state
   searchTerm = '';
   selectedCategory = '';
+  sortOrder: 'asc' | 'desc' = 'asc';
   inStockOnly = false;
   minimumPrice: number | null = null;
   maximumPrice: number | null = null;
@@ -273,6 +325,7 @@ export class ProductListComponent implements OnInit {
 
   ngOnInit() {
     this.loadCategories();
+    this.loadPriceRange();
     this.loadProducts();
   }
 
@@ -280,6 +333,13 @@ export class ProductListComponent implements OnInit {
     this.productsService.getCategories().subscribe({
       next: (categories) => this.categories.set(categories),
       error: (err) => console.error('Error loading categories:', err),
+    });
+  }
+
+  loadPriceRange() {
+    this.productsService.getPriceRange().subscribe({
+      next: (range) => this.priceRange.set(range),
+      error: (err) => console.error('Error loading price range:', err),
     });
   }
 
@@ -298,12 +358,14 @@ export class ProductListComponent implements OnInit {
     if (this.inStockOnly) {
       filter.inStock = true;
     }
-    if(this.minimumPrice) {
+    if (this.minimumPrice !== null && this.minimumPrice !== undefined) {
       filter.minPrice = this.minimumPrice;
     }
-    if(this.maximumPrice) {
+    if (this.maximumPrice !== null && this.maximumPrice !== undefined) {
       filter.maxPrice = this.maximumPrice;
     }
+
+    filter.sortOrder = this.sortOrder;
 
     this.productsService.getProducts(filter, this.currentPage(), 12).subscribe({
       next: (response) => {
@@ -326,6 +388,11 @@ export class ProductListComponent implements OnInit {
   }
 
   onFilterChange() {
+    this.currentPage.set(1);
+    this.loadProducts();
+  }
+
+  onSortChange() {
     this.currentPage.set(1);
     this.loadProducts();
   }

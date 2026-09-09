@@ -44,6 +44,19 @@ describe('ProductsService', () => {
       });
     });
 
+    it('should return filtered products sorted by price in ascending order', () => {
+      const filter: ProductFilter = { minPrice: 0, maxPrice: 1000 };
+      const result = service.getAllProducts(filter);
+
+      expect(result.items.length).toBeGreaterThan(1);
+      expect(
+        result.items.every(
+          (product, index, items) =>
+            index === 0 || items[index - 1].price <= product.price
+        )
+      ).toBe(true);
+    });
+
     it('should handle search term filtering', () => {
       const filter: ProductFilter = { searchTerm: 'Product 1' };
       const result = service.getAllProducts(filter);

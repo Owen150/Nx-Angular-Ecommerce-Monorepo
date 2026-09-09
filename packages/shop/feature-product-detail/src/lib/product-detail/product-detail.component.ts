@@ -45,6 +45,22 @@ import { LoadingSpinnerComponent, ErrorMessageComponent } from '@org/shop/shared
             <!-- <div class="product-category">{{ product()!.category }}</div> -->
             <h1 class="product-name">{{ product()!.name }}</h1>
 
+            <div class="product-description">
+              <!-- <h2>Description</h2> -->
+              <p>{{ product()!.description }}</p>
+              <div class="product-info">
+                <!-- <h3>Product Information</h3> -->
+                <dl>
+                  <dt>Category:</dt>
+                  <dd>{{ product()!.category }}</dd>
+                  <!-- <dt>Product ID:</dt>
+                  <dd>{{ product()!.id }}</dd> -->
+                  <dt>Availability:</dt>
+                  <dd>{{ product()!.inStock ? 'In Stock' : 'Out of Stock' }}</dd>
+                </dl>
+              </div>
+            </div>
+
             <div class="product-rating">
               <span class="stars">
                 @for (star of getStars(); track $index) {
@@ -63,22 +79,6 @@ import { LoadingSpinnerComponent, ErrorMessageComponent } from '@org/shop/shared
               {{ product()!.price | currency }}
             </div>
 
-            <div class="product-description">
-              <h2>Description</h2>
-              <p>{{ product()!.description }}</p>
-              <div class="product-info">
-                <!-- <h3>Product Information</h3> -->
-                <dl>
-                  <dt>Category:</dt>
-                  <dd>{{ product()!.category }}</dd>
-                  <!-- <dt>Product ID:</dt>
-                  <dd>{{ product()!.id }}</dd> -->
-                  <dt>Availability:</dt>
-                  <dd>{{ product()!.inStock ? 'In Stock' : 'Out of Stock' }}</dd>
-                </dl>
-              </div>
-            </div>
-
             <div class="product-actions">
               @if (product()!.inStock) {
                 <button class="btn-primary" (click)="addToCart()">
@@ -93,18 +93,6 @@ import { LoadingSpinnerComponent, ErrorMessageComponent } from '@org/shop/shared
                 </button>
               }
             </div>
-
-            <!-- <div class="product-info">
-              <h3>Product Information</h3>
-              <dl>
-                <dt>Category:</dt>
-                <dd>{{ product()!.category }}</dd>
-                <dt>Product ID:</dt>
-                <dd>{{ product()!.id }}</dd>
-                <dt>Availability:</dt>
-                <dd>{{ product()!.inStock ? 'In Stock' : 'Out of Stock' }}</dd>
-              </dl>
-            </div> -->
           </div>
         </div>
       }

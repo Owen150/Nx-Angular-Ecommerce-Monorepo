@@ -66,6 +66,11 @@ export class ProductsService {
       }
     }
 
+    const sortOrder = filter?.sortOrder ?? 'asc';
+    filteredProducts = filteredProducts.sort((a, b) =>
+      sortOrder === 'asc' ? a.price - b.price : b.price - a.price
+    );
+
     const total = filteredProducts.length;
     const totalPages = Math.ceil(total / pageSize);
     const startIndex = (page - 1) * pageSize;

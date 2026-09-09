@@ -31,4 +31,5 @@ export interface ProductFilter {
   maxPrice?: number;
   inStock?: boolean;
   searchTerm?: string;
+  sortOrder?: 'asc' | 'desc';
 }

@@ -9,7 +9,7 @@ import { describe, it, beforeEach, expect, vi } from 'vitest';
 describe('ProductListComponent', () => {
   let component: ProductListComponent;
   let fixture: ComponentFixture<ProductListComponent>;
-  let mockProductsService: Partial<ProductsService>;
+  let mockProductsService: any;
   let mockRouter: Partial<Router>;
 
   const mockProducts: Product[] = [
@@ -41,8 +41,7 @@ describe('ProductListComponent', () => {
     mockProductsService = {
       getProducts: vi.fn(),
       getCategories: vi.fn(),
-      loading: vi.fn().mockReturnValue(false),
-      error: vi.fn().mockReturnValue(null),
+      getPriceRange: vi.fn(),
     };
 
     mockRouter = {
@@ -65,7 +64,7 @@ describe('ProductListComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should load products and categories on init', () => {
+  it('should load products, categories, and price range on init', () => {
     mockProductsService.getProducts.mockReturnValue(of({
       items: mockProducts,
       total: 2,
@@ -74,12 +73,17 @@ describe('ProductListComponent', () => {
       totalPages: 1,
     }));
     mockProductsService.getCategories.mockReturnValue(of(['Electronics', 'Clothing']));
+    mockProductsService.getPriceRange.mockReturnValue(
+      of({ min: 50, max: 500 })
+    );
 
     component.ngOnInit();
 
     expect(mockProductsService.getProducts).toHaveBeenCalled();
     expect(mockProductsService.getCategories).toHaveBeenCalled();
+    expect(mockProductsService.getPriceRange).toHaveBeenCalled();
     expect(component.products()).toEqual(mockProducts);
+    expect(component.priceRange()).toEqual({ min: 50, max: 500 });
   });
 
   it('should navigate to product detail when product is selected', () => {
@@ -126,6 +130,27 @@ describe('ProductListComponent', () => {
     expect(mockProductsService.getProducts).toHaveBeenCalledWith(
       expect.objectContaining({
         category: 'Electronics',
+      }),
+      1,
+      12
+    );
+  });
+
+  it('should apply a selected price sort order', () => {
+    mockProductsService.getProducts.mockReturnValue(of({
+      items: mockProducts,
+      total: 2,
+      page: 1,
+      pageSize: 10,
+      totalPages: 1,
+    }));
+
+    component.sortOrder = 'desc';
+    component.onSortChange();
+
+    expect(mockProductsService.getProducts).toHaveBeenCalledWith(
+      expect.objectContaining({
+        sortOrder: 'desc',
       }),
       1,
       12

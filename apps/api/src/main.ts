@@ -24,7 +24,7 @@ app.use((req, res, next) => {
 });
 
 app.get('/', (req, res) => {
-  res.send({ message: 'Hello API' });
+  res.send({ message: 'Hello TyapTech Express API' });
 });
 
 // Products endpoints
@@ -46,6 +46,9 @@ app.get('/api/products', (req, res) => {
     }
     if (req.query.searchTerm) {
       filter.searchTerm = req.query.searchTerm as string;
+    }
+    if (req.query.sortOrder === 'asc' || req.query.sortOrder === 'desc') {
+      filter.sortOrder = req.query.sortOrder;
     }
 
     const page = req.query.page ? Number(req.query.page) : 1;

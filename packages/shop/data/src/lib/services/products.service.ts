@@ -45,6 +45,9 @@ export class ProductsService {
       if (filter.searchTerm) {
         params = params.set('searchTerm', filter.searchTerm);
       }
+      if (filter.sortOrder) {
+        params = params.set('sortOrder', filter.sortOrder);
+      }
     }
 
     return this.http
