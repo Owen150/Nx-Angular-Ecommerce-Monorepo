@@ -71,8 +71,8 @@ import { LoadingSpinnerComponent, ErrorMessageComponent } from '@org/shop/shared
                 <dl>
                   <dt>Category:</dt>
                   <dd>{{ product()!.category }}</dd>
-                  <dt>Product ID:</dt>
-                  <dd>{{ product()!.id }}</dd>
+                  <!-- <dt>Product ID:</dt>
+                  <dd>{{ product()!.id }}</dd> -->
                   <dt>Availability:</dt>
                   <dd>{{ product()!.inStock ? 'In Stock' : 'Out of Stock' }}</dd>
                 </dl>

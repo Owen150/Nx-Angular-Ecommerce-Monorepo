@@ -43,7 +43,7 @@ import {
             (ngModelChange)="onFilterChange()"
             class="filter-select"
           >
-            <option value="">All Categories</option>
+            <option value="">Filter by Category</option>
             @for (category of categories(); track category) {
               <option [value]="category">{{ category }}</option>
             }
@@ -57,6 +57,17 @@ import {
             />
             In Stock Only
           </label>
+
+          <select
+            [(ngModel)]="selectedCategory"
+            (ngModelChange)="onFilterChange()"
+            class="filter-select"
+          >
+            <option value="">Filter by Price</option>
+            @for (category of categories(); track category) {
+              <option [value]="category">{{ category }}</option>
+            }
+          </select>
         </div>
       </div>
 
@@ -154,6 +165,7 @@ import {
       gap: 16px;
       align-items: center;
       flex-wrap: wrap;
+      justify-content: space-between;
     }
 
     .filter-select {
@@ -253,6 +265,8 @@ export class ProductListComponent implements OnInit {
   searchTerm = '';
   selectedCategory = '';
   inStockOnly = false;
+  minimumPrice: number | null = null;
+  maximumPrice: number | null = null;
 
   // Computed values
   readonly hasMorePages = computed(() => this.totalPages() > 1);
@@ -283,6 +297,12 @@ export class ProductListComponent implements OnInit {
     }
     if (this.inStockOnly) {
       filter.inStock = true;
+    }
+    if(this.minimumPrice) {
+      filter.minPrice = this.minimumPrice;
+    }
+    if(this.maximumPrice) {
+      filter.maxPrice = this.maximumPrice;
     }
 
     this.productsService.getProducts(filter, this.currentPage(), 12).subscribe({
