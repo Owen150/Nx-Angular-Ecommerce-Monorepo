@@ -1,5 +1,5 @@
 import { TestBed, ComponentFixture } from '@angular/core/testing';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, convertToParamMap } from '@angular/router';
 import { of, throwError } from 'rxjs';
 import { ProductDetailComponent } from './product-detail.component';
 import { ProductsService } from '@org/shop/data';
@@ -28,6 +28,15 @@ describe('ProductDetailComponent', () => {
   beforeEach(async () => {
     mockProductsService = {
       getProductById: vi.fn(),
+      getProducts: vi.fn().mockReturnValue(
+        of({
+          items: [],
+          total: 0,
+          page: 1,
+          pageSize: 12,
+          totalPages: 0,
+        })
+      ),
     };
 
     mockRouter = {
@@ -35,6 +44,7 @@ describe('ProductDetailComponent', () => {
     };
 
     mockActivatedRoute = {
+      paramMap: of(convertToParamMap({ id: '1' })),
       snapshot: {
         paramMap: {
           get: vi.fn().mockReturnValue('1'),
@@ -98,6 +108,35 @@ describe('ProductDetailComponent', () => {
     const stars = component.getStars();
 
     expect(stars).toEqual([true, true, true, true, true]);
+  });
+
+  it('should load related products from the same category', () => {
+    const relatedProduct: Product = {
+      ...mockProduct,
+      id: '2',
+      name: 'Related Product',
+      price: 129.99,
+    };
+
+    mockProductsService.getProductById.mockReturnValue(of(mockProduct));
+    mockProductsService.getProducts.mockReturnValue(
+      of({
+        items: [mockProduct, relatedProduct],
+        total: 2,
+        page: 1,
+        pageSize: 12,
+        totalPages: 1,
+      })
+    );
+
+    component.ngOnInit();
+
+    expect(mockProductsService.getProducts).toHaveBeenCalledWith(
+      { category: 'Electronics' },
+      1,
+      12
+    );
+    expect(component.relatedProducts()).toEqual([relatedProduct]);
   });
 
   it('should handle add to cart action', () => {

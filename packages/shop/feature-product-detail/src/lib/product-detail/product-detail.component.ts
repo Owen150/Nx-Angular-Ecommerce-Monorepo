@@ -3,7 +3,11 @@ import { CommonModule, CurrencyPipe } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ProductsService } from '@org/shop/data';
 import { Product } from '@org/models';
-import { LoadingSpinnerComponent, ErrorMessageComponent } from '@org/shop/shared-ui';
+import {
+  LoadingSpinnerComponent,
+  ErrorMessageComponent,
+  ProductCardComponent,
+} from '@org/shop/shared-ui';
 
 @Component({
   selector: 'shop-product-detail',
@@ -13,6 +17,7 @@ import { LoadingSpinnerComponent, ErrorMessageComponent } from '@org/shop/shared
     RouterLink,
     LoadingSpinnerComponent,
     ErrorMessageComponent,
+    ProductCardComponent,
   ],
   template: `
     <div class="product-detail-container">
@@ -95,6 +100,23 @@ import { LoadingSpinnerComponent, ErrorMessageComponent } from '@org/shop/shared
             </div>
           </div>
         </div>
+
+        <div class="related-products">
+          <h2>Related Products</h2>
+
+          @if (relatedProducts().length) {
+            <div class="related-products-scroll">
+              @for (relatedProduct of relatedProducts(); track relatedProduct.id) {
+                <shop-product-card
+                  [product]="relatedProduct"
+                  (productClick)="onRelatedProductSelect($event)"
+                />
+              }
+            </div>
+          } @else {
+            <p class="no-related-products">No related products found.</p>
+          }
+        </div>
       }
     </div>
   `,
@@ -123,11 +145,13 @@ import { LoadingSpinnerComponent, ErrorMessageComponent } from '@org/shop/shared
 
     .product-detail {
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 18px;
+      grid-template-columns: 0.6fr 1fr;
+      gap: 25px;
       // background: white;
       // border-radius: 8px;
       overflow: hidden;
+      align-items: start;
+      justify-content: center;
     }
 
     .product-image-section {
@@ -139,7 +163,7 @@ import { LoadingSpinnerComponent, ErrorMessageComponent } from '@org/shop/shared
     .product-image {
       width: 100%;
       height: auto;
-      // border-radius: 8px;
+      border-radius: 8px;
       // box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     }
 
@@ -158,6 +182,7 @@ import { LoadingSpinnerComponent, ErrorMessageComponent } from '@org/shop/shared
       display: flex;
       flex-direction: column;
       gap: 10px;
+      height: 100%;
     }
 
     .product-category {
@@ -223,6 +248,8 @@ import { LoadingSpinnerComponent, ErrorMessageComponent } from '@org/shop/shared
     .product-actions {
       display: flex;
       gap: 16px;
+      margin-top: auto;
+      margin-bottom: 7px;
     }
 
     .btn-primary {
@@ -304,6 +331,36 @@ import { LoadingSpinnerComponent, ErrorMessageComponent } from '@org/shop/shared
       color: #333;
     }
 
+    .related-products {
+      display: flex;
+      flex-direction: column;
+      margin-top: 7px;
+    }
+
+    .related-products h2 {
+      margin: 0 0 16px;
+      font-size: 1.5rem;
+      color: #333;
+    }
+
+    .related-products-scroll {
+      display: flex;
+      gap: 16px;
+      overflow-x: auto;
+      padding-bottom: 8px;
+      scroll-snap-type: x proximity;
+    }
+
+    .related-products-scroll shop-product-card {
+      flex: 0 0 280px;
+      scroll-snap-align: start;
+    }
+
+    .no-related-products {
+      color: #666;
+      margin: 0;
+    }
+
     @media (max-width: 768px) {
       .product-detail {
         grid-template-columns: 1fr;
@@ -332,15 +389,17 @@ export class ProductDetailComponent implements OnInit {
 
   // State signals
   readonly product = signal<Product | null>(null);
+  readonly relatedProducts = signal<Product[]>([]);
   readonly loading = signal(false);
   readonly error = signal<string | null>(null);
 
   ngOnInit() {
-    this.loadProduct();
+    this.route.paramMap.subscribe((paramMap) => {
+      this.loadProduct(paramMap.get('id'));
+    });
   }
 
-  loadProduct() {
-    const productId = this.route.snapshot.paramMap.get('id');
+  loadProduct(productId: string | null = this.route.snapshot.paramMap.get('id')) {
 
     if (!productId) {
       this.error.set('Product ID not provided');
@@ -349,22 +408,48 @@ export class ProductDetailComponent implements OnInit {
 
     this.loading.set(true);
     this.error.set(null);
+    this.relatedProducts.set([]);
 
     this.productsService.getProductById(productId).subscribe({
       next: (product) => {
         if (product) {
           this.product.set(product);
+          this.loadRelatedProducts(product);
         } else {
           this.error.set('Product not found');
+          this.product.set(null);
         }
         this.loading.set(false);
       },
       error: (err) => {
         this.error.set('Failed to load product details');
+        this.product.set(null);
         this.loading.set(false);
         console.error('Error loading product:', err);
       },
     });
+  }
+
+  loadRelatedProducts(product: Product) {
+    this.productsService
+      .getProducts(
+        { category: product.category },
+        1,
+        12
+      )
+      .subscribe({
+        next: (response) => {
+          const relatedProducts = response.items.filter(
+            (item) => item.id !== product.id
+          );
+
+          this.relatedProducts.set(relatedProducts.slice(0, 6));
+        },
+        error: (err) => {
+          console.error('Error loading related products:', err);
+          this.relatedProducts.set([]);
+        },
+      });
   }
 
   getStars(): boolean[] {
@@ -380,6 +465,10 @@ export class ProductDetailComponent implements OnInit {
       if (index === fullStars && hasHalfStar) return true;
       return false;
     });
+  }
+
+  onRelatedProductSelect(product: Product) {
+    this.router.navigate(['/products', product.id]);
   }
 
   addToCart() {
