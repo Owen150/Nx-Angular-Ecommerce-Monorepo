@@ -23,6 +23,22 @@ describe('App', () => {
     expect(component).toBeTruthy();
   });
 
+  it('should redirect the empty path to the home route', () => {
+    expect(appRoutes[0]).toEqual(
+      expect.objectContaining({
+        path: '',
+        redirectTo: 'home',
+        pathMatch: 'full',
+      })
+    );
+
+    expect(appRoutes).toContainEqual(
+      expect.objectContaining({
+        path: 'home',
+      })
+    );
+  });
+
   it('should render title in header', () => {
     const compiled = fixture.nativeElement as HTMLElement;
     expect(compiled.querySelector('.main-name span')?.textContent).toContain(
@@ -32,7 +48,9 @@ describe('App', () => {
 
   it('should render navigation links', () => {
     const compiled = fixture.nativeElement as HTMLElement;
-    const productLink = compiled.querySelector('.products a');
+    const productLink = Array.from(compiled.querySelectorAll('.link')).find(
+      link => link.textContent?.includes('Products')
+    );
 
     expect(productLink).toBeTruthy();
     expect(productLink?.textContent).toContain('Products');

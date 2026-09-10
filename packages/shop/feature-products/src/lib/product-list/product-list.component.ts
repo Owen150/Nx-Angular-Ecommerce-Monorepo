@@ -121,7 +121,7 @@ import {
               [disabled]="currentPage() === 1"
               (click)="previousPage()"
             >
-              Back
+              Prev
             </button>
             <span class="page-info">
               Page {{ currentPage() }} of {{ totalPages() }}
@@ -229,7 +229,7 @@ import {
       flex-direction: row;
       align-items: center;
       gap: 6px;
-      color: #666;
+      color: black;
     }
 
     .price-input {

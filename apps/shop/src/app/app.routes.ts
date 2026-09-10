@@ -3,8 +3,13 @@ import { Route } from '@angular/router';
 export const appRoutes: Route[] = [
   {
     path: '',
-    redirectTo: 'products',
+    redirectTo: 'home',
     pathMatch: 'full',
+  },
+  {
+    path: 'home',
+    loadComponent: () =>
+      import('./home/home.component').then(m => m.HomeComponent),
   },
   {
     path: 'products',
@@ -20,6 +25,6 @@ export const appRoutes: Route[] = [
   },
   {
     path: '**',
-    redirectTo: 'products',
+    redirectTo: 'home',
   },
 ];
