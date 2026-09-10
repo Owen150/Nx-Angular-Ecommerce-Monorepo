@@ -104,6 +104,7 @@ export class ProductsService {
       );
   }
 
+  //The return type of getCategories() is Observable<string[]> because it returns an observable that emits an array of strings (the categories). The method uses the HttpClient to make a GET request to the API endpoint for product categories, and it processes the response to extract the data or handle errors.
   getCategories(): Observable<string[]> {
     return this.http
       .get<ApiResponse<string[]>>(`${this.apiUrl}/products-metadata/categories`)

@@ -1,19 +1,7 @@
-<header class="app-header">
-  <div class="container">
-    <h1>{{ title }}</h1>
-    <nav>
-      <a routerLink="/products" routerLinkActive="active">Products</a>
-    </nav>
-  </div>
-</header>
+<app-header [title]="title"></app-header>
 
 <main class="app-main">
   <router-outlet></router-outlet>
 </main>
 
-<footer class="app-footer">
-  <div class="container">
-    <p>© 2025 TyapTech</p>
-    <p>Michael Owen Oduor</p>
-  </div>
-</footer>
+<app-footer></app-footer>

@@ -1,0 +1,30 @@
+<header>
+  <mat-toolbar class="header-container">
+    <div class="main-icon">
+      <button mat-icon-button>
+        <mat-icon>menu</mat-icon>
+      </button>
+      <a routerLink="/products" routerLinkActive="active" class="main-name"><span>TyapTech</span></a>
+    </div>
+    
+    <div class="right-header-nav">
+      <a routerLink="/products" routerLinkActive="active" class="link">
+        <!-- <mat-icon>person_outline</mat-icon> -->
+        <span>Products</span>
+      </a>
+
+      <div routerLink="/login" class="link">
+        <button mat-icon-button>
+          <mat-icon>person_outline</mat-icon>
+        </button>
+      </div>
+
+      <div routerLink="/cart" class="link">
+        <button mat-icon-button>
+          <mat-icon>add_shopping_cart</mat-icon>
+        </button>
+        <!-- <div class="cart-items" *ngIf="cartItemCount">{{ cartItemCount }}</div> -->
+      </div>
+    </div>
+  </mat-toolbar>
+</header>

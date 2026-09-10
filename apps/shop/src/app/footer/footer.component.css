@@ -1,0 +1,25 @@
+.app-footer {
+  background-color: #ebaaaa;
+  display: flex;
+  color: black;
+  padding: 24px 0;
+  text-align: center;
+  box-sizing: border-box;
+}
+
+.app-footer .container {
+  max-width: 1200px;
+  margin: 0 auto;
+  /* padding: 0 24px; */
+  justify-content: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.app-footer p {
+  /* margin: 2px 0; */
+  font-size: 0.9rem;
+  font-weight: bold;
+  text-align: center;
+}

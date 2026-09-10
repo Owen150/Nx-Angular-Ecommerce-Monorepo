@@ -121,7 +121,7 @@ import {
               [disabled]="currentPage() === 1"
               (click)="previousPage()"
             >
-              Previous
+              Back
             </button>
             <span class="page-info">
               Page {{ currentPage() }} of {{ totalPages() }}

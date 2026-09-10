@@ -25,25 +25,24 @@ describe('App', () => {
 
   it('should render title in header', () => {
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('h1')?.textContent).toContain('Nx Shop Demo');
+    expect(compiled.querySelector('.main-name span')?.textContent).toContain(
+      'TyapTech'
+    );
   });
 
   it('should render navigation links', () => {
-    const navLinks = fixture.debugElement.queryAll(By.css('nav a'));
-    expect(navLinks.length).toBeGreaterThan(0);
-    expect(navLinks[0].nativeElement.textContent).toContain('Products');
-    expect(navLinks[0].nativeElement.getAttribute('routerLink')).toBe(
-      '/products'
-    );
+    const compiled = fixture.nativeElement as HTMLElement;
+    const productLink = compiled.querySelector('.products a');
+
+    expect(productLink).toBeTruthy();
+    expect(productLink?.textContent).toContain('Products');
   });
 
   it('should render footer with correct copyright', () => {
     const footer = fixture.nativeElement.querySelector('.app-footer');
     expect(footer).toBeTruthy();
-    expect(footer?.textContent).toContain('© 2025 Nx Shop Demo');
-    expect(footer?.textContent).toContain(
-      'Frontend (Angular) + Backend (Express) + Shared Libraries'
-    );
+    expect(footer?.textContent).toContain('© 2025 TyapTech');
+    expect(footer?.textContent).toContain('Michael Owen Oduor');
   });
 
   it('should have router outlet for dynamic content', () => {
