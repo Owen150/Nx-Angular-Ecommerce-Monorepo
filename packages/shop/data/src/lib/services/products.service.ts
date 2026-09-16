@@ -25,6 +25,8 @@ export class ProductsService {
     this.loadingSignal.set(true);
     this.errorSignal.set(null);
 
+    //Only use let when reassigning the variable, as we are reassigning params based on the filter conditions. If we were not reassigning, we could use const instead.
+    //Params are used to build the query string for the HTTP request. We start with the page and pageSize parameters, and then conditionally add other parameters based on the provided filter.
     let params = new HttpParams()
       .set('page', page.toString())
       .set('pageSize', pageSize.toString());

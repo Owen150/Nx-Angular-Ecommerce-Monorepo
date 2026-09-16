@@ -1,17 +1,19 @@
 .home-page {
   display: flex;
-  justify-content: center;
-  padding: 4rem 1.5rem;
+  flex-direction: column;
+  /* justify-content: center; */
+  height: 100%;
 }
 
 .home-hero {
-  max-width: 720px;
-  text-align: center;
-  background: linear-gradient(135deg, rgba(0, 0, 0, 0.02), rgba(0, 0, 0, 0.06));
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  border-radius: 1rem;
-  padding: 3rem 2rem;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+  /* width: 100%; */
+  /* height:max-content; */
+    text-align: center;
+    background-image: url('../assets/img/header-bg.jpg');
+    /* background: linear-gradient(135deg, rgba(0, 0, 0, 0.02), rgba(0, 0, 0, 0.06)); */
+    /* border: 1px solid rgba(0, 0, 0, 0.08); */
+    padding: 2rem 2rem;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
 }
 
 .eyebrow {
@@ -27,12 +29,13 @@
   margin: 1rem 0;
   font-size: clamp(2.25rem, 4vw, 4rem);
   line-height: 1.05;
+  color: white;
 }
 
 .subtitle {
   margin: 0 auto 2rem;
   max-width: 40rem;
-  color: #475467;
+  color: white;
   font-size: 1.05rem;
   line-height: 1.6;
 }
