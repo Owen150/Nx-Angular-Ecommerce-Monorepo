@@ -1,7 +1,7 @@
 import { Component, inject, signal, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule, CurrencyPipe } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { ProductsService } from '@org/shop/data';
+import { CartService, ProductsService } from '@org/shop/data';
 import { Product } from '@org/models';
 import {
   LoadingSpinnerComponent,
@@ -386,6 +386,7 @@ export class ProductDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly productsService = inject(ProductsService);
+  private readonly cartService = inject(CartService);
 
   // State signals
   readonly product = signal<Product | null>(null);
@@ -472,8 +473,13 @@ export class ProductDetailComponent implements OnInit {
   }
 
   addToCart() {
-    // This would typically call a cart service
-    console.log('Adding to cart:', this.product()?.id);
+    const product = this.product();
+    if (!product) {
+      return;
+    }
+
+    this.cartService.addItem(product);
+    console.log('Adding to cart:', product.id);
     alert('Product added to cart!');
   }
 

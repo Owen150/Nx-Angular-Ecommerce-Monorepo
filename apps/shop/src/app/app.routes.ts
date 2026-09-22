@@ -24,6 +24,16 @@ export const appRoutes: Route[] = [
       ),
   },
   {
+    path: 'cart',
+    loadChildren: () =>
+      import('@org/shop/feature-cart').then(m => m.featureCartRoutes),
+  },
+  {
+    path: 'checkout',
+    loadChildren: () =>
+      import('@org/shop/feature-checkout').then(m => m.featureCheckoutRoutes),
+  },
+  {
     path: '**',
     redirectTo: 'home',
   },

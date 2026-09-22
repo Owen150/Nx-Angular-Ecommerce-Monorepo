@@ -102,7 +102,42 @@ input {
   padding: 2px;
 } */
 
-.cart-items { margin-left: 4px; }
+.cart-link {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cart-button {
+  position: relative;
+  overflow: visible !important;
+}
+
+.cart-button .mat-icon {
+  position: relative;
+  z-index: 1;
+}
+
+.cart-badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: 50%;
+  background: #ff6600;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+  box-shadow: 0 0 0 2px white;
+  z-index: 2;
+}
 
 .mat-primary{
   color: orangered;

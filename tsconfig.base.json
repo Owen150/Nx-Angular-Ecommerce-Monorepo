@@ -17,6 +17,10 @@
       "@org/api/products": ["./packages/api/products/src/index.ts"],
       "@org/models": ["./packages/shared/models/src/index.ts"],
       "@org/shop/data": ["./packages/shop/data/src/index.ts"],
+      "@org/shop/feature-cart": ["./packages/shop/feature-cart/src/index.ts"],
+      "@org/shop/feature-checkout": [
+        "./packages/shop/feature-checkout/src/index.ts"
+      ],
       "@org/shop/feature-product-detail": [
         "./packages/shop/feature-product-detail/src/index.ts"
       ],

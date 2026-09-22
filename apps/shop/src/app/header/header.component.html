@@ -19,11 +19,13 @@
         </button>
       </div>
 
-      <div routerLink="/cart" class="link">
-        <button mat-icon-button>
+      <div routerLink="/cart" class="link cart-link">
+        <button mat-icon-button class="cart-button" aria-label="Cart items">
           <mat-icon>add_shopping_cart</mat-icon>
+          @if (cartItemCount > 0) {
+            <span class="cart-badge">{{ cartItemCount }}</span>
+          }
         </button>
-        <!-- <div class="cart-items" *ngIf="cartItemCount">{{ cartItemCount }}</div> -->
       </div>
     </div>
   </mat-toolbar>
