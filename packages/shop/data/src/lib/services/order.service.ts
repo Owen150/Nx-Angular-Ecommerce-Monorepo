@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
@@ -15,9 +15,9 @@ export interface Order {
   providedIn: 'root'
 })
 export class OrderService {
-  private apiUrl = `${environment.apiUrl}/orders`;
-
-  constructor(private http: HttpClient) {}
+  // private apiUrl = `${environment.apiUrl}/orders`;
+  private readonly apiUrl = `${environment.apiUrl}/orders`;
+  private readonly http = inject(HttpClient);
 
   getOrders(): Observable<Order[]> {
     return this.http.get<Order[]>(this.apiUrl);

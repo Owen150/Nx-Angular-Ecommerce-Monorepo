@@ -1,7 +1,7 @@
 import { CommonModule, CurrencyPipe } from '@angular/common';
 import { Component, computed, inject } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
-import { CartService } from '@org/shop/data';
+import { CartService, OrderService, PaymentService } from '@org/shop/data';
 
 @Component({
   selector: 'shop-checkout',
@@ -202,19 +202,40 @@ import { CartService } from '@org/shop/data';
 export class CheckoutComponent {
   private readonly cartService = inject(CartService);
   private readonly router = inject(Router);
+  private readonly paymentService = inject(PaymentService);
+  private readonly orderService = inject(OrderService);
 
   readonly cartItems = this.cartService.items;
   readonly subtotal = this.cartService.subtotal;
   readonly shipping = computed(() => (this.cartItems().length > 0 ? 15 : 0));
   readonly total = computed(() => this.subtotal() + this.shipping());
 
+  orderId = 1;
   placeOrder(): void {
     if (this.cartItems().length === 0) {
       return;
     }
-
+    // save order to the db
     this.cartService.clearCart();
     alert('Order placed successfully!');
-    this.router.navigate(['/products']);
+    // this.router.navigate(['/products']);
+    this.pay();
+  }
+
+  pay(): void {
+    this.paymentService
+      .createCheckout(this.orderId)
+      .subscribe({
+        next: (response) => {
+          window.location.href =
+            response.checkoutUrl;
+        },
+        error: (error) => {
+          console.error(
+            'Checkout creation failed',
+            error
+          );
+        }
+      });
   }
 }
