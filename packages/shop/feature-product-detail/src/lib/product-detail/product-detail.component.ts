@@ -415,7 +415,7 @@ export class ProductDetailComponent implements OnInit {
       next: (product) => {
         if (product) {
           this.product.set(product);
-          this.loadRelatedProducts(product);
+          // this.loadRelatedProducts(product);
         } else {
           this.error.set('Product not found');
           this.product.set(null);
@@ -431,27 +431,27 @@ export class ProductDetailComponent implements OnInit {
     });
   }
 
-  loadRelatedProducts(product: Product) {
-    this.productsService
-      .getProducts(
-        { category: product.category },
-        1,
-        12
-      )
-      .subscribe({
-        next: (response) => {
-          const relatedProducts = response.items.filter(
-            (item) => item.id !== product.id
-          );
+  // loadRelatedProducts(product: Product) {
+  //   this.productsService
+  //     .getProducts(
+  //       { category: product.category },
+  //       1,
+  //       12
+  //     )
+  //     .subscribe({
+  //       next: (response) => {
+  //         const relatedProducts = response.items.filter(
+  //           (item) => item.id !== product.id
+  //         );
 
-          this.relatedProducts.set(relatedProducts.slice(0, 6));
-        },
-        error: (err) => {
-          console.error('Error loading related products:', err);
-          this.relatedProducts.set([]);
-        },
-      });
-  }
+  //         this.relatedProducts.set(relatedProducts.slice(0, 6));
+  //       },
+  //       error: (err) => {
+  //         console.error('Error loading related products:', err);
+  //         this.relatedProducts.set([]);
+  //       },
+  //     });
+  // }
 
   getStars(): boolean[] {
     const product = this.product();
