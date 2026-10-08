@@ -475,6 +475,10 @@ export class ProductDetailComponent implements OnInit {
       },
     });
   }
+  
+  onRelatedProductSelect(product: Product) {
+    this.router.navigate(['/products', product.id]);
+  }
 
   getStars(): boolean[] {
     const product = this.product();
@@ -489,10 +493,6 @@ export class ProductDetailComponent implements OnInit {
       if (index === fullStars && hasHalfStar) return true;
       return false;
     });
-  }
-
-  onRelatedProductSelect(product: Product) {
-    this.router.navigate(['/products', product.id]);
   }
 
   addToCart() {
