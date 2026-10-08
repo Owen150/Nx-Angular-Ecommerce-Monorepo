@@ -421,7 +421,7 @@ export class ProductDetailComponent implements OnInit {
       next: (product) => {
         if (product) {
           this.product.set(product);
-          // this.loadRelatedProducts(product);
+          this.loadRelatedProducts(product);
         } else {
           const serviceError = this.productsService.error();
           this.error.set(
@@ -454,27 +454,27 @@ export class ProductDetailComponent implements OnInit {
     }
   }
 
-  // loadRelatedProducts(product: Product) {
-  //   this.productsService
-  //     .getProducts(
-  //       { category: product.category },
-  //       1,
-  //       12
-  //     )
-  //     .subscribe({
-  //       next: (response) => {
-  //         const relatedProducts = response.items.filter(
-  //           (item) => item.id !== product.id
-  //         );
+  loadRelatedProducts(product: Product): void {
+    if (!product.category) {
+      this.relatedProducts.set([]);
+      return;
+    }
 
-  //         this.relatedProducts.set(relatedProducts.slice(0, 6));
-  //       },
-  //       error: (err) => {
-  //         console.error('Error loading related products:', err);
-  //         this.relatedProducts.set([]);
-  //       },
-  //     });
-  // }
+    this.productsService.getAllProducts().subscribe({
+      next: (products) => {
+        const relatedProducts = products.filter(
+          (item) =>
+            item.id !== product.id &&
+            item.category?.id === product.category?.id
+        );
+        this.relatedProducts.set(relatedProducts.slice(0, 6));
+      },
+      error: (error: unknown) => {
+        console.error('Error loading related products:', error);
+        this.relatedProducts.set([]);
+      },
+    });
+  }
 
   getStars(): boolean[] {
     const product = this.product();

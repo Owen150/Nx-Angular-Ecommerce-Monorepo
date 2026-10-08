@@ -27,10 +27,16 @@ describe('ProductDetailComponent', () => {
     reviewCount: 100,
     quantity: 5,
   };
+  const relatedProduct: Product = {
+    ...mockProduct,
+    id: 2,
+    name: 'Related Product',
+  };
 
   beforeEach(async () => {
     mockProductsService = {
       getProductById: vi.fn(),
+      getAllProducts: vi.fn().mockReturnValue(of([])),
       error: () => null,
     };
 
@@ -71,8 +77,44 @@ describe('ProductDetailComponent', () => {
 
     expect(mockProductsService.getProductById).toHaveBeenCalledWith(1);
     expect(component.product()).toEqual(mockProduct);
+    expect(mockProductsService.getAllProducts).toHaveBeenCalledOnce();
     expect(component.loading()).toBe(false);
     expect(component.error()).toBe(null);
+  });
+
+  it('loads up to six other products from the same category', () => {
+    mockProductsService.getProductById.mockReturnValue(of(mockProduct));
+    mockProductsService.getAllProducts.mockReturnValue(
+      of([
+        mockProduct,
+        relatedProduct,
+        { ...relatedProduct, id: 3, name: 'Another Related Product' },
+        {
+          ...relatedProduct,
+          id: 4,
+          name: 'Different Category Product',
+          category: { id: 2, name: 'Software', description: 'Software' },
+        },
+      ])
+    );
+
+    component.ngOnInit();
+
+    expect(component.relatedProducts()).toEqual([
+      relatedProduct,
+      { ...relatedProduct, id: 3, name: 'Another Related Product' },
+    ]);
+  });
+
+  it('does not load related products if the product has no category', () => {
+    mockProductsService.getProductById.mockReturnValue(
+      of({ ...mockProduct, category: null })
+    );
+
+    component.ngOnInit();
+
+    expect(mockProductsService.getAllProducts).not.toHaveBeenCalled();
+    expect(component.relatedProducts()).toEqual([]);
   });
 
   it('should handle error when product not found', () => {
