@@ -3,11 +3,17 @@ export interface Product {
   name: string;
   description: string;
   price: number;
-  category: string;
+  category: Category;
   imageUrl: string;
   inStock: boolean;
   rating: number;
   reviewCount: number;
+}
+
+export interface Category {
+  id: number;
+  name: string;
+  description: string;
 }
 
 export interface ApiResponse<T> {

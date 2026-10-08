@@ -57,7 +57,7 @@ import {
                 <!-- <h3>Product Information</h3> -->
                 <dl>
                   <dt>Category:</dt>
-                  <dd>{{ product()!.category }}</dd>
+                  <dd>{{ product()!.category.name }}</dd>
                   <!-- <dt>Product ID:</dt>
                   <dd>{{ product()!.id }}</dd> -->
                   <dt>Availability:</dt>
