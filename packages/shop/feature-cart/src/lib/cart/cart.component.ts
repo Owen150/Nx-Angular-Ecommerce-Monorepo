@@ -1,5 +1,5 @@
 import { CommonModule, CurrencyPipe } from '@angular/common';
-import { Component, computed, inject } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { CartService } from '@org/shop/data';
 
@@ -23,11 +23,15 @@ import { CartService } from '@org/shop/data';
           <div class="cart-items">
             @for (item of cartItems(); track item.id) {
               <article class="cart-item">
-                <img [src]="item.product.imageUrl" [alt]="item.product.name" />
+                <img
+                  [src]="item.product.imageUrl || fallbackImageUrl"
+                  [alt]="item.product.name"
+                  (error)="onImageError($event)"
+                />
 
                 <div class="details">
                   <h2>{{ item.product.name }}</h2>
-                  <p>{{ item.product.category }}</p>
+                  <p>{{ item.product.category?.name ?? 'Uncategorized' }}</p>
                   <div class="price-row">
                     <strong>{{ item.product.price | currency }}</strong>
                   </div>
@@ -241,8 +245,17 @@ export class CartComponent {
   readonly cartItems = this.cartService.items;
   readonly itemCount = this.cartService.itemCount;
   readonly subtotal = this.cartService.subtotal;
+  readonly fallbackImageUrl = '/product-placeholder.svg';
 
-  increaseQuantity(productId: string): void {
+  onImageError(event: Event): void {
+    if (event.target instanceof HTMLImageElement) {
+      if (event.target.getAttribute('src') !== this.fallbackImageUrl) {
+        event.target.src = this.fallbackImageUrl;
+      }
+    }
+  }
+
+  increaseQuantity(productId: number): void {
     const currentItem = this.cartItems().find((item) => item.id === productId);
     if (!currentItem) {
       return;
@@ -251,7 +264,7 @@ export class CartComponent {
     this.cartService.updateQuantity(productId, currentItem.quantity + 1);
   }
 
-  decreaseQuantity(productId: string): void {
+  decreaseQuantity(productId: number): void {
     const currentItem = this.cartItems().find((item) => item.id === productId);
     if (!currentItem) {
       return;
@@ -260,7 +273,7 @@ export class CartComponent {
     this.cartService.updateQuantity(productId, currentItem.quantity - 1);
   }
 
-  removeItem(productId: string): void {
+  removeItem(productId: number): void {
     this.cartService.removeItem(productId);
   }
 

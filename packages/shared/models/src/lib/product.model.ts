@@ -1,19 +1,30 @@
 export interface Product {
-  id: string;
+  id: number;
   name: string;
   description: string;
   price: number;
-  category: Category;
-  imageUrl: string;
-  inStock: boolean;
-  rating: number;
-  reviewCount: number;
+  quantity: number;
+  imageUrl: string | null;
+  seller: Seller | null;
+  stock: number;
+  category: Category | null;
+  inStock: boolean | null;
+  rating: number | null;
+  reviewCount: number | null;
 }
 
 export interface Category {
   id: number;
   name: string;
   description: string;
+}
+
+export interface Seller {
+  id: number;
+  businessName: string;
+  email: string;
+  stripeAccountId: string;
+  stripeOnboardingComplete: boolean;
 }
 
 export interface ApiResponse<T> {

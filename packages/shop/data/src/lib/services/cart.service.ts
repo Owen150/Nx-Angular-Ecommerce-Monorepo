@@ -2,7 +2,7 @@ import { computed, Injectable, signal } from '@angular/core';
 import { Product } from '@org/models';
 
 export interface CartItem {
-  id: string;
+  id: number;
   product: Product;
   quantity: number;
 }
@@ -39,13 +39,13 @@ export class CartService {
     this.persist(updatedItems);
   }
 
-  removeItem(productId: string): void {
+  removeItem(productId: number): void {
     const updatedItems = this.items().filter((item) => item.id !== productId);
     this.items.set(updatedItems);
     this.persist(updatedItems);
   }
 
-  updateQuantity(productId: string, quantity: number): void {
+  updateQuantity(productId: number, quantity: number): void {
     if (quantity <= 0) {
       this.removeItem(productId);
       return;

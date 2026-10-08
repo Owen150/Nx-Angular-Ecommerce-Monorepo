@@ -14,29 +14,24 @@ describe('ProductDetailComponent', () => {
   let mockActivatedRoute: Partial<ActivatedRoute>;
 
   const mockProduct: Product = {
-    id: '1',
+    id: 1,
     name: 'Test Product',
     description: 'Test Description',
     price: 99.99,
     imageUrl: 'https://example.com/image.jpg',
-    category: 'Electronics',
+    seller: null,
+    stock: 5,
+    category: { id: 1, name: 'Electronics', description: 'Electronics' },
     inStock: true,
     rating: 4.5,
     reviewCount: 100,
+    quantity: 5,
   };
 
   beforeEach(async () => {
     mockProductsService = {
       getProductById: vi.fn(),
-      getProducts: vi.fn().mockReturnValue(
-        of({
-          items: [],
-          total: 0,
-          page: 1,
-          pageSize: 12,
-          totalPages: 0,
-        })
-      ),
+      error: () => null,
     };
 
     mockRouter = {
@@ -74,7 +69,7 @@ describe('ProductDetailComponent', () => {
 
     component.ngOnInit();
 
-    expect(mockProductsService.getProductById).toHaveBeenCalledWith('1');
+    expect(mockProductsService.getProductById).toHaveBeenCalledWith(1);
     expect(component.product()).toEqual(mockProduct);
     expect(component.loading()).toBe(false);
     expect(component.error()).toBe(null);
@@ -102,6 +97,32 @@ describe('ProductDetailComponent', () => {
     consoleSpy.mockRestore();
   });
 
+  it('should render backend products when optional fields are null', () => {
+    const productWithNullFields: Product = {
+      ...mockProduct,
+      imageUrl: null,
+      category: null,
+      inStock: null,
+      rating: null,
+      reviewCount: null,
+    };
+    mockProductsService.getProductById.mockReturnValue(of(productWithNullFields));
+
+    component.ngOnInit();
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement;
+    expect(compiled.querySelector('.product-name').textContent).toContain(
+      'Test Product'
+    );
+    expect(compiled.querySelector('.product-info dd').textContent).toContain(
+      'Uncategorized'
+    );
+    expect(compiled.querySelector('.product-image').getAttribute('src')).toBe(
+      '/product-placeholder.svg'
+    );
+  });
+
   it('should calculate star ratings correctly', () => {
     component.product.set(mockProduct);
 
@@ -110,33 +131,12 @@ describe('ProductDetailComponent', () => {
     expect(stars).toEqual([true, true, true, true, true]);
   });
 
-  it('should load related products from the same category', () => {
-    const relatedProduct: Product = {
-      ...mockProduct,
-      id: '2',
-      name: 'Related Product',
-      price: 129.99,
-    };
+  it('rejects invalid route IDs without calling the backend', () => {
+    component.loadProduct('not-a-number');
 
-    mockProductsService.getProductById.mockReturnValue(of(mockProduct));
-    mockProductsService.getProducts.mockReturnValue(
-      of({
-        items: [mockProduct, relatedProduct],
-        total: 2,
-        page: 1,
-        pageSize: 12,
-        totalPages: 1,
-      })
-    );
-
-    component.ngOnInit();
-
-    expect(mockProductsService.getProducts).toHaveBeenCalledWith(
-      { category: 'Electronics' },
-      1,
-      12
-    );
-    expect(component.relatedProducts()).toEqual([relatedProduct]);
+    expect(mockProductsService.getProductById).not.toHaveBeenCalled();
+    expect(component.error()).toBe('Invalid product ID');
+    expect(component.loading()).toBe(false);
   });
 
   it('should handle add to cart action', () => {
@@ -146,7 +146,7 @@ describe('ProductDetailComponent', () => {
 
     component.addToCart();
 
-    expect(consoleSpy).toHaveBeenCalledWith('Adding to cart:', '1');
+    expect(consoleSpy).toHaveBeenCalledWith('Adding to cart:', 1);
     expect(alertSpy).toHaveBeenCalledWith('Product added to cart!');
   });
 });

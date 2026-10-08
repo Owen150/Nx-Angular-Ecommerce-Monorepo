@@ -37,11 +37,12 @@ import {
         <div class="product-detail">
           <div class="product-image-section">
             <img
-              [src]="product()!.imageUrl"
+              [src]="product()!.imageUrl || fallbackImageUrl"
               [alt]="product()!.name"
               class="product-image"
+              (error)="onImageError($event)"
             />
-            @if (!product()!.inStock) {
+            @if (!isInStock(product()!)) {
               <div class="out-of-stock-badge">Out of Stock</div>
             }
           </div>
@@ -57,11 +58,11 @@ import {
                 <!-- <h3>Product Information</h3> -->
                 <dl>
                   <dt>Category:</dt>
-                  <dd>{{ product()!.category.name }}</dd>
+                  <dd>{{ product()!.category?.name ?? 'Uncategorized' }}</dd>
                   <!-- <dt>Product ID:</dt>
                   <dd>{{ product()!.id }}</dd> -->
                   <dt>Availability:</dt>
-                  <dd>{{ product()!.inStock ? 'In Stock' : 'Out of Stock' }}</dd>
+                  <dd>{{ isInStock(product()!) ? 'In Stock' : 'Out of Stock' }}</dd>
                 </dl>
               </div>
             </div>
@@ -73,10 +74,10 @@ import {
                 }
               </span>
               <span class="rating-text">
-                {{ product()!.rating }} out of 5
+                {{ product()!.rating ?? 0 }} out of 5
               </span>
               <span class="review-count">
-                ({{ product()!.reviewCount }} reviews)
+                ({{ product()!.reviewCount ?? 0 }} reviews)
               </span>
             </div>
 
@@ -85,7 +86,7 @@ import {
             </div>
 
             <div class="product-actions">
-              @if (product()!.inStock) {
+              @if (isInStock(product()!)) {
                 <button class="btn-primary" (click)="addToCart()">
                   Add to Cart
                 </button>
@@ -393,6 +394,7 @@ export class ProductDetailComponent implements OnInit {
   readonly relatedProducts = signal<Product[]>([]);
   readonly loading = signal(false);
   readonly error = signal<string | null>(null);
+  readonly fallbackImageUrl = '/product-placeholder.svg';
 
   ngOnInit() {
     this.route.paramMap.subscribe((paramMap) => {
@@ -401,9 +403,13 @@ export class ProductDetailComponent implements OnInit {
   }
 
   loadProduct(productId: string | null = this.route.snapshot.paramMap.get('id')) {
-
-    if (!productId) {
-      this.error.set('Product ID not provided');
+    const id = productId === null ? NaN : Number(productId);
+    if (!Number.isSafeInteger(id) || id <= 0) {
+      this.error.set(
+        productId === null ? 'Product ID not provided' : 'Invalid product ID'
+      );
+      this.product.set(null);
+      this.loading.set(false);
       return;
     }
 
@@ -411,13 +417,18 @@ export class ProductDetailComponent implements OnInit {
     this.error.set(null);
     this.relatedProducts.set([]);
 
-    this.productsService.getProductById(productId).subscribe({
+    this.productsService.getProductById(id).subscribe({
       next: (product) => {
         if (product) {
           this.product.set(product);
           // this.loadRelatedProducts(product);
         } else {
-          this.error.set('Product not found');
+          const serviceError = this.productsService.error();
+          this.error.set(
+            serviceError
+              ? `Failed to load product details: ${serviceError}`
+              : 'Product not found'
+          );
           this.product.set(null);
         }
         this.loading.set(false);
@@ -429,6 +440,18 @@ export class ProductDetailComponent implements OnInit {
         console.error('Error loading product:', err);
       },
     });
+  }
+
+  isInStock(product: Product): boolean {
+    return product.inStock ?? product.stock > 0;
+  }
+
+  onImageError(event: Event): void {
+    if (event.target instanceof HTMLImageElement) {
+      if (event.target.getAttribute('src') !== this.fallbackImageUrl) {
+        event.target.src = this.fallbackImageUrl;
+      }
+    }
   }
 
   // loadRelatedProducts(product: Product) {
@@ -457,7 +480,7 @@ export class ProductDetailComponent implements OnInit {
     const product = this.product();
     if (!product) return [];
 
-    const rating = product.rating;
+    const rating = product.rating ?? 0;
     const fullStars = Math.floor(rating);
     const hasHalfStar = rating % 1 >= 0.5;
 

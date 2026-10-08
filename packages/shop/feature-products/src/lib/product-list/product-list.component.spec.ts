@@ -9,39 +9,47 @@ import { describe, it, beforeEach, expect, vi } from 'vitest';
 describe('ProductListComponent', () => {
   let component: ProductListComponent;
   let fixture: ComponentFixture<ProductListComponent>;
-  let mockProductsService: any;
+  let mockProductsService: {
+    getAllProducts: ReturnType<typeof vi.fn>;
+    error: () => string | null;
+  };
   let mockRouter: Partial<Router>;
 
   const mockProducts: Product[] = [
     {
-      id: '1',
+      id: 1,
       name: 'Product 1',
       description: 'Description 1',
       price: 99.99,
+      quantity: 5,
       imageUrl: 'https://example.com/1.jpg',
-      category: 'Electronics',
+      seller: null,
+      stock: 5,
+      category: { id: 1, name: 'Electronics', description: 'Electronics' },
       inStock: true,
       rating: 4.5,
       reviewCount: 100,
     },
     {
-      id: '2',
+      id: 2,
       name: 'Product 2',
       description: 'Description 2',
       price: 149.99,
-      imageUrl: 'https://example.com/2.jpg',
-      category: 'Clothing',
+      quantity: 0,
+      imageUrl: null,
+      seller: null,
+      stock: 0,
+      category: null,
       inStock: false,
-      rating: 4.0,
-      reviewCount: 50,
+      rating: null,
+      reviewCount: null,
     },
   ];
 
   beforeEach(async () => {
     mockProductsService = {
-      getProducts: vi.fn(),
-      getCategories: vi.fn(),
-      getPriceRange: vi.fn(),
+      getAllProducts: vi.fn().mockReturnValue(of(mockProducts)),
+      error: () => null,
     };
 
     mockRouter = {
@@ -60,100 +68,39 @@ describe('ProductListComponent', () => {
     component = fixture.componentInstance;
   });
 
-  it('should create', () => {
+  it('creates and loads products from the backend on init', () => {
+    fixture.detectChanges();
+
     expect(component).toBeTruthy();
-  });
-
-  it('should load products, categories, and price range on init', () => {
-    mockProductsService.getProducts.mockReturnValue(of({
-      items: mockProducts,
-      total: 2,
-      page: 1,
-      pageSize: 10,
-      totalPages: 1,
-    }));
-    mockProductsService.getCategories.mockReturnValue(of(['Electronics', 'Clothing']));
-    mockProductsService.getPriceRange.mockReturnValue(
-      of({ min: 50, max: 500 })
-    );
-
-    component.ngOnInit();
-
-    expect(mockProductsService.getProducts).toHaveBeenCalled();
-    expect(mockProductsService.getCategories).toHaveBeenCalled();
-    expect(mockProductsService.getPriceRange).toHaveBeenCalled();
+    expect(mockProductsService.getAllProducts).toHaveBeenCalledOnce();
     expect(component.products()).toEqual(mockProducts);
-    expect(component.priceRange()).toEqual({ min: 50, max: 500 });
+    expect(component.loading()).toBe(false);
+    expect(component.error()).toBeNull();
   });
 
-  it('should navigate to product detail when product is selected', () => {
-    const product = mockProducts[0];
+  it('renders backend products in the product grid', () => {
+    fixture.detectChanges();
 
-    component.onProductSelect(product);
-
-    expect(mockRouter.navigate).toHaveBeenCalledWith(['/products', product.id]);
+    const cards = fixture.nativeElement.querySelectorAll('shop-product-card');
+    expect(cards).toHaveLength(2);
+    expect(fixture.nativeElement.textContent).toContain('Uncategorized');
   });
 
-  it('should apply filters when search term changes', () => {
-    mockProductsService.getProducts.mockReturnValue(of({
-      items: mockProducts,
-      total: 2,
-      page: 1,
-      pageSize: 10,
-      totalPages: 1,
-    }));
+  it('navigates to a product detail using its numeric ID', () => {
+    component.onProductSelect(mockProducts[0]);
 
-    component.searchTerm = 'Product 1';
-    component.onSearchChange();
-
-    expect(mockProductsService.getProducts).toHaveBeenCalledWith(
-      expect.objectContaining({
-        searchTerm: 'Product 1',
-      }),
-      1,
-      12
-    );
+    expect(mockRouter.navigate).toHaveBeenCalledWith(['/products', 1]);
   });
 
-  it('should apply filters when category changes', () => {
-    mockProductsService.getProducts.mockReturnValue(of({
-      items: [mockProducts[0]],
-      total: 1,
-      page: 1,
-      pageSize: 10,
-      totalPages: 1,
-    }));
+  it('shows a load error recorded by the products service', () => {
+    mockProductsService.getAllProducts.mockReturnValue(of([]));
+    mockProductsService.error = () => 'Backend is unavailable';
 
-    component.selectedCategory = 'Electronics';
-    component.onFilterChange();
+    fixture.detectChanges();
 
-    expect(mockProductsService.getProducts).toHaveBeenCalledWith(
-      expect.objectContaining({
-        category: 'Electronics',
-      }),
-      1,
-      12
-    );
-  });
-
-  it('should apply a selected price sort order', () => {
-    mockProductsService.getProducts.mockReturnValue(of({
-      items: mockProducts,
-      total: 2,
-      page: 1,
-      pageSize: 10,
-      totalPages: 1,
-    }));
-
-    component.sortOrder = 'desc';
-    component.onSortChange();
-
-    expect(mockProductsService.getProducts).toHaveBeenCalledWith(
-      expect.objectContaining({
-        sortOrder: 'desc',
-      }),
-      1,
-      12
+    expect(component.error()).toContain('Backend is unavailable');
+    expect(fixture.nativeElement.textContent).toContain(
+      'Failed to load products: Backend is unavailable'
     );
   });
 });

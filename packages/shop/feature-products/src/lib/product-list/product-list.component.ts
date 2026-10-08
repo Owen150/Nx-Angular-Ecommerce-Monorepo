@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ProductsService } from '@org/shop/data';
-import { Product, ProductFilter } from '@org/models';
+import { Product } from '@org/models';
 import {
   ProductGridComponent,
   LoadingSpinnerComponent,
@@ -351,10 +351,11 @@ export class ProductListComponent implements OnInit {
 
       this.productsService.getAllProducts().subscribe({
       next: (response) => {
-        console.log(response);
         this.products.set(response);
-        // this.totalProducts.set(response);
-        // this.totalPages.set(response);
+        const serviceError = this.productsService.error();
+        if (serviceError) {
+          this.error.set(`Failed to load products: ${serviceError}`);
+        }
         this.loading.set(false);
       },
       error: (err) => {

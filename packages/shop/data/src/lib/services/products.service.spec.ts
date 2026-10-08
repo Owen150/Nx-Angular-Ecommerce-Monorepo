@@ -1,20 +1,53 @@
-import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
-import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
+import {
+  HttpTestingController,
+  provideHttpClientTesting,
+} from '@angular/common/http/testing';
+import { TestBed } from '@angular/core/testing';
+import { Product } from '@org/models';
 import { ProductsService } from './products.service';
-import { Product, ApiResponse, PaginatedResponse, ProductFilter } from '@org/models';
 
 describe('ProductsService', () => {
   let service: ProductsService;
   let httpMock: HttpTestingController;
-  const apiUrl = 'http://localhost:3333/api';
+  const apiUrl = 'http://localhost:8080/api';
+
+  const makeProduct = (
+    id: number,
+    name: string,
+    price: number,
+    categoryName: string
+  ): Product => ({
+    id,
+    name,
+    description: `${name} description`,
+    price,
+    quantity: 5,
+    imageUrl: `${name}.jpg`,
+    seller: {
+      id: 1,
+      businessName: 'Test seller',
+      email: 'seller@example.com',
+      stripeAccountId: 'acct_test',
+      stripeOnboardingComplete: true,
+    },
+    stock: 5,
+    category: {
+      id: categoryName === 'Books' ? 2 : 1,
+      name: categoryName,
+      description: `${categoryName} category`,
+    },
+    inStock: true,
+    rating: 4.5,
+    reviewCount: 10,
+  });
 
   beforeEach(() => {
     TestBed.configureTestingModule({
       providers: [
         provideHttpClient(),
         provideHttpClientTesting(),
-        ProductsService
+        ProductsService,
       ],
     });
     service = TestBed.inject(ProductsService);
@@ -23,256 +56,135 @@ describe('ProductsService', () => {
 
   afterEach(() => {
     httpMock.verify();
+    vi.restoreAllMocks();
   });
 
   it('should be created', () => {
     expect(service).toBeTruthy();
   });
 
-  describe('getProducts', () => {
-    const mockProductsResponse: ApiResponse<PaginatedResponse<Product>> = {
-      success: true,
-      data: {
-        items: [
-          {
-            id: '1',
-            name: 'Product 1',
-            description: 'Description 1',
-            price: 100,
-            imageUrl: 'image1.jpg',
-            category: 'Electronics',
-            inStock: true,
-            rating: 4.5,
-            reviewCount: 10,
-          },
-          {
-            id: '2',
-            name: 'Product 2',
-            description: 'Description 2',
-            price: 200,
-            imageUrl: 'image2.jpg',
-            category: 'Clothing',
-            inStock: false,
-            rating: 3.5,
-            reviewCount: 5,
-          },
-        ],
-        total: 2,
-        page: 1,
-        pageSize: 12,
-        totalPages: 1,
-      },
-    };
+  describe('getAllProducts', () => {
+    it('loads products from the configured backend', () => {
+      const products = [
+        makeProduct(1, 'Book', 25, 'Books'),
+        makeProduct(2, 'Headphones', 80, 'Electronics'),
+      ];
 
-    it('should return products with default pagination', () => {
-      service.getProducts().subscribe((response) => {
-        expect(response.items.length).toBe(2);
-        expect(response.total).toBe(2);
-        expect(response.page).toBe(1);
-        expect(service.loading()).toBeFalsy();
+      service.getAllProducts().subscribe((result) => {
+        expect(result).toEqual(products);
+        expect(service.loading()).toBe(false);
         expect(service.error()).toBeNull();
       });
 
-      const req = httpMock.expectOne(`${apiUrl}/products?page=1&pageSize=12`);
-      expect(req.request.method).toBe('GET');
-      req.flush(mockProductsResponse);
+      const request = httpMock.expectOne(`${apiUrl}/products`);
+      expect(request.request.method).toBe('GET');
+      request.flush(products);
     });
 
-    it('should apply filters when provided', () => {
-      const filter: ProductFilter = {
-        category: 'Electronics',
-        minPrice: 50,
-        maxPrice: 150,
-        inStock: true,
-        searchTerm: 'test',
-      };
+    it('clears loading and records an error when the request fails', () => {
+      vi.spyOn(console, 'error').mockImplementation(() => undefined);
 
-      service.getProducts(filter, 2, 20).subscribe((response) => {
-        expect(response).toBeTruthy();
-      });
-
-      const req = httpMock.expectOne(
-        `${apiUrl}/products?page=2&pageSize=20&category=Electronics&minPrice=50&maxPrice=150&inStock=true&searchTerm=test`
-      );
-      expect(req.request.method).toBe('GET');
-      req.flush(mockProductsResponse);
-    });
-
-    it('should handle error response', () => {
-      const errorResponse: ApiResponse<PaginatedResponse<Product>> = {
-        success: false,
-        error: 'Server error',
-        data: undefined as unknown
-      };
-
-      // Silence console.error for this test
-      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
-
-      service.getProducts().subscribe((response) => {
-        expect(response.items).toEqual([]);
-        expect(response.total).toBe(0);
-        expect(service.error()).toContain('Server error');
-      });
-
-      const req = httpMock.expectOne(`${apiUrl}/products?page=1&pageSize=12`);
-      req.flush(errorResponse);
-
-      consoleErrorSpy.mockRestore();
-    });
-
-    it('should handle network error', () => {
-      // Silence console.error for this test
-      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
-
-      service.getProducts().subscribe((response) => {
-        expect(response.items).toEqual([]);
-        expect(response.total).toBe(0);
+      service.getAllProducts().subscribe((products) => {
+        expect(products).toEqual([]);
+        expect(service.loading()).toBe(false);
         expect(service.error()).toBeTruthy();
       });
 
-      const req = httpMock.expectOne(`${apiUrl}/products?page=1&pageSize=12`);
-      req.error(new ProgressEvent('Network error'));
-
-      consoleErrorSpy.mockRestore();
+      httpMock
+        .expectOne(`${apiUrl}/products`)
+        .error(new ProgressEvent('Network error'));
     });
   });
 
   describe('getProductById', () => {
-    const mockProduct: Product = {
-      id: '1',
-      name: 'Product 1',
-      description: 'Description 1',
-      price: 100,
-      imageUrl: 'image1.jpg',
-      category: 'Electronics',
-      inStock: true,
-      rating: 4.5,
-      reviewCount: 10,
-    };
+    it('loads a product from the configured backend', () => {
+      const product = makeProduct(1, 'Book', 25, 'Books');
 
-    it('should return a product by id', () => {
-      const mockResponse: ApiResponse<Product> = {
-        success: true,
-        data: mockProduct,
-      };
-
-      service.getProductById('1').subscribe((product) => {
-        expect(product).toEqual(mockProduct);
-        expect(service.loading()).toBeFalsy();
+      service.getProductById(1).subscribe((result) => {
+        expect(result).toEqual(product);
+        expect(service.loading()).toBe(false);
         expect(service.error()).toBeNull();
       });
 
-      const req = httpMock.expectOne(`${apiUrl}/products/1`);
-      expect(req.request.method).toBe('GET');
-      req.flush(mockResponse);
+      const request = httpMock.expectOne(`${apiUrl}/products/1`);
+      expect(request.request.method).toBe('GET');
+      request.flush(product);
     });
 
-    it('should return null on error', () => {
-      // Silence console.error for this test
-      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    it('returns null and records an error when the request fails', () => {
+      vi.spyOn(console, 'error').mockImplementation(() => undefined);
 
-      service.getProductById('1').subscribe((product) => {
+      service.getProductById(1).subscribe((product) => {
         expect(product).toBeNull();
+        expect(service.loading()).toBe(false);
         expect(service.error()).toBeTruthy();
       });
 
-      const req = httpMock.expectOne(`${apiUrl}/products/1`);
-      req.error(new ProgressEvent('Network error'));
-
-      consoleErrorSpy.mockRestore();
+      httpMock
+        .expectOne(`${apiUrl}/products/1`)
+        .error(new ProgressEvent('Network error'));
     });
   });
 
   describe('getCategories', () => {
-    it('should return categories list', () => {
-      const mockCategories = ['Electronics', 'Clothing', 'Books'];
-      const mockResponse: ApiResponse<string[]> = {
-        success: true,
-        data: mockCategories,
-      };
+    it('loads category names from the backend categories endpoint', () => {
+      service
+        .getCategories()
+        .subscribe((categories) => expect(categories).toEqual(['Books', 'Electronics']));
 
-      service.getCategories().subscribe((categories) => {
-        expect(categories).toEqual(mockCategories);
-      });
-
-      const req = httpMock.expectOne(`${apiUrl}/products-metadata/categories`);
-      expect(req.request.method).toBe('GET');
-      req.flush(mockResponse);
+      const request = httpMock.expectOne(`${apiUrl}/products/categories`);
+      expect(request.request.method).toBe('GET');
+      request.flush([
+        { id: 1, name: 'Books', description: 'Book category' },
+        { id: 2, name: 'Electronics', description: 'Electronics category' },
+      ]);
     });
 
-    it('should return empty array on error', () => {
-      // Silence console.error for this test
-      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    it('returns an empty list when the categories request fails', () => {
+      vi.spyOn(console, 'error').mockImplementation(() => undefined);
 
       service.getCategories().subscribe((categories) => {
         expect(categories).toEqual([]);
       });
 
-      const req = httpMock.expectOne(`${apiUrl}/products-metadata/categories`);
-      req.error(new ProgressEvent('Network error'));
-
-      consoleErrorSpy.mockRestore();
+      httpMock
+        .expectOne(`${apiUrl}/products/categories`)
+        .error(new ProgressEvent('Network error'));
     });
   });
 
   describe('getPriceRange', () => {
-    it('should return price range', () => {
-      const mockPriceRange = { min: 10, max: 500 };
-      const mockResponse: ApiResponse<{ min: number; max: number }> = {
-        success: true,
-        data: mockPriceRange,
-      };
+    it('derives the range from backend product prices', () => {
+      service
+        .getPriceRange()
+        .subscribe((range) => expect(range).toEqual({ min: 25, max: 80 }));
 
-      service.getPriceRange().subscribe((range) => {
-        expect(range).toEqual(mockPriceRange);
-      });
-
-      const req = httpMock.expectOne(`${apiUrl}/products-metadata/price-range`);
-      expect(req.request.method).toBe('GET');
-      req.flush(mockResponse);
+      const request = httpMock.expectOne(`${apiUrl}/products`);
+      expect(request.request.method).toBe('GET');
+      request.flush([
+        makeProduct(1, 'Book', 25, 'Books'),
+        makeProduct(2, 'Headphones', 80, 'Electronics'),
+      ]);
     });
 
-    it('should return default range on error', () => {
-      // Silence console.error for this test
-      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    it('returns the default range when the backend has no products', () => {
+      service
+        .getPriceRange()
+        .subscribe((range) => expect(range).toEqual({ min: 0, max: 1000 }));
 
-      service.getPriceRange().subscribe((range) => {
-        expect(range).toEqual({ min: 0, max: 1000 });
-      });
-
-      const req = httpMock.expectOne(`${apiUrl}/products-metadata/price-range`);
-      req.error(new ProgressEvent('Network error'));
-
-      consoleErrorSpy.mockRestore();
-    });
-  });
-
-  describe('loading and error signals', () => {
-    it('should set loading to true when fetching products', () => {
-      expect(service.loading()).toBeFalsy();
-
-      service.getProducts().subscribe();
-      expect(service.loading()).toBeTruthy();
-
-      const req = httpMock.expectOne(`${apiUrl}/products?page=1&pageSize=12`);
-      req.flush({ success: true, data: { items: [], total: 0, page: 1, pageSize: 12, totalPages: 0 } });
-
-      expect(service.loading()).toBeFalsy();
+      httpMock.expectOne(`${apiUrl}/products`).flush([]);
     });
 
-    it('should set error message on failure', () => {
-      // Silence console.error for this test
-      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
-      expect(service.error()).toBeNull();
+    it('returns the default range when the products request fails', () => {
+      vi.spyOn(console, 'error').mockImplementation(() => undefined);
 
-      service.getProductById('1').subscribe(() => {
-        expect(service.error()).toBeTruthy();
-      });
+      service
+        .getPriceRange()
+        .subscribe((range) => expect(range).toEqual({ min: 0, max: 1000 }));
 
-      const req = httpMock.expectOne(`${apiUrl}/products/1`);
-      req.error(new ProgressEvent('Network error'));
-
-      consoleErrorSpy.mockRestore();
+      httpMock
+        .expectOne(`${apiUrl}/products`)
+        .error(new ProgressEvent('Network error'));
     });
   });
 });

@@ -11,27 +11,33 @@ import { Product } from '@org/models';
       (click)="productClick.emit(product())"
       (keyup.enter)="productClick.emit(product())"
       (keyup.space)="productClick.emit(product())"
-      [class.out-of-stock]="!product().inStock"
+      [class.out-of-stock]="!isInStock()"
       tabindex="0"
       role="button"
       [attr.aria-label]="'View details for ' + product().name"
     >
       <div class="product-image">
-        <img [src]="product().imageUrl" [alt]="product().name" />
-        @if (!product().inStock) {
+        <img
+          [src]="product().imageUrl || fallbackImageUrl"
+          [alt]="product().name"
+          (error)="onImageError($event)"
+        />
+        @if (!isInStock()) {
           <div class="out-of-stock-overlay">Out of Stock</div>
         }
       </div>
       <div class="product-info">
-        <h3 class="product-name">{{ product().name }}</h3>
-        <p class="product-category">{{ product().category }}</p>
+        <h3 class="product-name">{{ product()!.name }}</h3>
+        <p class="product-category">
+          {{ product()!.category?.name ?? 'Uncategorized' }}
+        </p>
         <div class="product-rating">
           <span class="stars">
             @for (star of getStars(); track $index) {
               <span [class.filled]="star">★</span>
             }
           </span>
-          <span class="review-count">({{ product().reviewCount }})</span>
+          <span class="review-count">({{ product().reviewCount ?? 0 }})</span>
         </div>
         <div class="product-price">
           {{ product().price | currency }}
@@ -147,9 +153,23 @@ import { Product } from '@org/models';
 export class ProductCardComponent {
   readonly product = input.required<Product>();
   readonly productClick = output<Product>();
+  readonly fallbackImageUrl = '/product-placeholder.svg';
+
+  isInStock(): boolean {
+    const product = this.product();
+    return product.inStock ?? product.stock > 0;
+  }
+
+  onImageError(event: Event): void {
+    if (event.target instanceof HTMLImageElement) {
+      if (event.target.getAttribute('src') !== this.fallbackImageUrl) {
+        event.target.src = this.fallbackImageUrl;
+      }
+    }
+  }
 
   getStars(): boolean[] {
-    const rating = this.product().rating;
+    const rating = this.product().rating ?? 0;
     const fullStars = Math.floor(rating);
     const hasHalfStar = rating % 1 >= 0.5;
 

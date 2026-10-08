@@ -1,7 +1,7 @@
 import { inject, Injectable, signal } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable, map, catchError, of } from 'rxjs';
-import { Product, ApiResponse, PaginatedResponse, ProductFilter } from '@org/models';
+import { HttpClient } from '@angular/common/http';
+import { Observable, catchError, map, of } from 'rxjs';
+import { Category, Product } from '@org/models';
 import { environment } from '../../environments/environment';
 
 @Injectable({
@@ -9,8 +9,7 @@ import { environment } from '../../environments/environment';
 })
 export class ProductsService {
   private readonly http = inject(HttpClient);
-  private readonly apiUrl = 'http://localhost:3333/api';
-  private readonly postgresUrl = environment.apiUrl;
+  private readonly apiUrl = environment.apiUrl;
 
   // Signals for state management
   private readonly loadingSignal = signal(false);
@@ -19,133 +18,60 @@ export class ProductsService {
   readonly loading = this.loadingSignal.asReadonly();
   readonly error = this.errorSignal.asReadonly();
 
-  getAllProducts(): Observable<Product[]>{
+  getAllProducts(): Observable<Product[]> {
     this.loadingSignal.set(true);
     this.errorSignal.set(null);
 
     return this.http
-      .get<Product[]>(`${this.postgresUrl}/products`)
+      .get<Product[]>(`${this.apiUrl}/products`)
       .pipe(
-        map((response) => {
+        map((products) => {
           this.loadingSignal.set(false);
-          // if (!response.success) {
-          //   throw new Error(response.error || 'Failed to load products');
-          // }
-          return response;
+          return products;
         }),
-        // catchError((error) => {
-        //   this.loadingSignal.set(false);
-        //   this.errorSignal.set(
-        //     error.message || 'An error occurred while loading products'
-        //   );
-        //   console.error('Error loading products:', error);
-        //   return of([]);
-
-        // })
+        catchError((error: unknown) => {
+          this.loadingSignal.set(false);
+          const message =
+            error instanceof Error
+              ? error.message
+              : 'An error occurred while loading products';
+          this.errorSignal.set(message);
+          console.error('Error loading products:', error);
+          return of([]);
+        })
       );
   }
 
-  // getProducts(
-  //   filter?: ProductFilter,
-  //   page = 1,
-  //   pageSize = 12
-  // ): Observable<PaginatedResponse<Product>> {
-  //   this.loadingSignal.set(true);
-  //   this.errorSignal.set(null);
-
-  //   //Only use let when reassigning the variable, as we are reassigning params based on the filter conditions. If we were not reassigning, we could use const instead.
-  //   //Params are used to build the query string for the HTTP request. We start with the page and pageSize parameters, and then conditionally add other parameters based on the provided filter.
-  //   let params = new HttpParams()
-  //     .set('page', page.toString())
-  //     .set('pageSize', pageSize.toString());
-
-  //   if (filter) {
-  //     if (filter.category) {
-  //       params = params.set('category', filter.category);
-  //     }
-  //     if (filter.minPrice !== undefined) {
-  //       params = params.set('minPrice', filter.minPrice.toString());
-  //     }
-  //     if (filter.maxPrice !== undefined) {
-  //       params = params.set('maxPrice', filter.maxPrice.toString());
-  //     }
-  //     if (filter.inStock !== undefined) {
-  //       params = params.set('inStock', filter.inStock.toString());
-  //     }
-  //     if (filter.searchTerm) {
-  //       params = params.set('searchTerm', filter.searchTerm);
-  //     }
-  //     if (filter.sortOrder) {
-  //       params = params.set('sortOrder', filter.sortOrder);
-  //     }
-  //   }
-
-  //   return this.http
-  //     .get<ApiResponse<PaginatedResponse<Product>>>(`${this.apiUrl}/products`, {
-  //       params,
-  //     })
-  //     .pipe(
-  //       map((response) => {
-  //         this.loadingSignal.set(false);
-  //         if (!response.success) {
-  //           throw new Error(response.error || 'Failed to load products');
-  //         }
-  //         return response.data;
-  //       }),
-  //       catchError((error) => {
-  //         this.loadingSignal.set(false);
-  //         this.errorSignal.set(
-  //           error.message || 'An error occurred while loading products'
-  //         );
-  //         console.error('Error loading products:', error);
-  //         return of({
-  //           items: [],
-  //           total: 0,
-  //           page: 1,
-  //           pageSize: 12,
-  //           totalPages: 0,
-  //         });
-  //       })
-  //     );
-  // }
-
-  getProductById(id: string): Observable<Product | null> {
+  getProductById(id: number): Observable<Product | null> {
     this.loadingSignal.set(true);
     this.errorSignal.set(null);
 
     return this.http
-      .get<Product>(`${this.postgresUrl}/products/${id}`)
+      .get<Product>(`${this.apiUrl}/products/${id}`)
       .pipe(
         map((response) => {
           this.loadingSignal.set(false);
-          // if (!response.success) {
-          //   throw new Error(response.error || 'Failed to load product');
-          // }
           return response;
         }),
-        catchError((error) => {
+        catchError((error: unknown) => {
           this.loadingSignal.set(false);
-          this.errorSignal.set(
-            error.message || 'An error occurred while loading the product'
-          );
+          const message =
+            error instanceof Error
+              ? error.message
+              : 'An error occurred while loading the product';
+          this.errorSignal.set(message);
           console.error('Error loading product:', error);
           return of(null);
         })
       );
   }
 
-  //The return type of getCategories() is Observable<string[]> because it returns an observable that emits an array of strings (the categories). The method uses the HttpClient to make a GET request to the API endpoint for product categories, and it processes the response to extract the data or handle errors.
   getCategories(): Observable<string[]> {
     return this.http
-      .get<ApiResponse<string[]>>(`${this.apiUrl}/products-metadata/categories`)
+      .get<Category[]>(`${this.apiUrl}/products/categories`)
       .pipe(
-        map((response) => {
-          if (!response.success) {
-            throw new Error(response.error || 'Failed to load categories');
-          }
-          return response.data;
-        }),
-        catchError((error) => {
+        map((categories) => categories.map((category) => category.name)),
+        catchError((error: unknown) => {
           console.error('Error loading categories:', error);
           return of([]);
         })
@@ -154,15 +80,18 @@ export class ProductsService {
 
   getPriceRange(): Observable<{ min: number; max: number }> {
     return this.http
-      .get<ApiResponse<{ min: number; max: number }>>(
-        `${this.apiUrl}/products-metadata/price-range`
-      )
+      .get<Product[]>(`${this.apiUrl}/products`)
       .pipe(
-        map((response) => {
-          if (!response.success) {
-            throw new Error(response.error || 'Failed to load price range');
+        map((products) => {
+          if (products.length === 0) {
+            return { min: 0, max: 1000 };
           }
-          return response.data;
+
+          const prices = products.map((product) => product.price);
+          return {
+            min: Math.min(...prices),
+            max: Math.max(...prices),
+          };
         }),
         catchError((error) => {
           console.error('Error loading price range:', error);

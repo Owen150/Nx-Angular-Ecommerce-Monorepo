@@ -8,15 +8,18 @@ describe('ProductCardComponent', () => {
   let fixture: ComponentFixture<ProductCardComponent>;
 
   const mockProduct: Product = {
-    id: '1',
+    id: 1,
     name: 'Test Product',
     description: 'Test Description',
     price: 99.99,
     imageUrl: 'https://example.com/image.jpg',
-    category: 'Electronics',
+    seller: null,
+    stock: 5,
+    category: { id: 1, name: 'Electronics', description: 'Electronics' },
     inStock: true,
     rating: 4.5,
     reviewCount: 100,
+    quantity: 5,
   };
 
   beforeEach(async () => {
@@ -74,5 +77,35 @@ describe('ProductCardComponent', () => {
     const stars = component.getStars();
 
     expect(stars).toEqual([true, true, false, false, false]);
+  });
+
+  it('should render products with null backend fields without breaking the card', () => {
+    fixture.componentRef.setInput('product', {
+      ...mockProduct,
+      imageUrl: null,
+      category: null,
+      inStock: null,
+      rating: null,
+      reviewCount: null,
+    });
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement;
+    expect(compiled.querySelector('.product-category').textContent).toContain(
+      'Uncategorized'
+    );
+    expect(compiled.querySelector('img').getAttribute('src')).toBe(
+      '/product-placeholder.svg'
+    );
+    expect(compiled.querySelector('.out-of-stock-overlay')).toBeNull();
+  });
+
+  it('should use a placeholder when the product image fails to load', () => {
+    fixture.detectChanges();
+    const image = fixture.nativeElement.querySelector('img');
+
+    image.dispatchEvent(new Event('error'));
+
+    expect(image.getAttribute('src')).toBe('/product-placeholder.svg');
   });
 });
