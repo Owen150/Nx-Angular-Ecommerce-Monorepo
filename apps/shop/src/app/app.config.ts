@@ -11,6 +11,8 @@ import {
   withEventReplay,
 } from '@angular/platform-browser';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
+import { FaIconLibrary } from '@fortawesome/angular-fontawesome';
+import { fab } from '@fortawesome/free-brands-svg-icons'; // Import the brand icon pack
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -22,3 +24,10 @@ export const appConfig: ApplicationConfig = {
     provideAnimationsAsync(),
   ],
 };
+
+// Inject and register the library pack
+export class AppConfig {
+  constructor(library: FaIconLibrary) {
+    library.addIconPacks(fab);
+  }
+}
