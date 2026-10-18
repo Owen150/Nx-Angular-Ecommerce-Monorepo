@@ -66,11 +66,11 @@ export class ProductsService {
       );
   }
 
-  getCategories(): Observable<string[]> {
+  getCategories(): Observable<Category[]> {
     return this.http
       .get<Category[]>(`${this.apiUrl}/products/categories`)
       .pipe(
-        map((categories) => categories.map((category) => category.name)),
+        map((categories) => categories),
         catchError((error: unknown) => {
           console.error('Error loading categories:', error);
           return of([]);
