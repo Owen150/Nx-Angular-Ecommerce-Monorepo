@@ -11,7 +11,6 @@ export class ProductsService {
   private readonly http = inject(HttpClient);
   private readonly apiUrl = environment.apiUrl;
 
-  // Signals for state management
   private readonly loadingSignal = signal(false);
   private readonly errorSignal = signal<string | null>(null);
 
@@ -67,11 +66,22 @@ export class ProductsService {
   }
 
   getCategories(): Observable<Category[]> {
+    this.loadingSignal.set(true);
+    this.errorSignal.set(null);
     return this.http
       .get<Category[]>(`${this.apiUrl}/products/categories`)
       .pipe(
-        map((categories) => categories),
+        map((categories) => { 
+          this.loadingSignal.set(false);
+          return categories; 
+        }),
         catchError((error: unknown) => {
+          this.loadingSignal.set(false);
+          const message =
+            error instanceof Error
+              ? error.message
+              : 'An error occurred while loading categories';
+          this.errorSignal.set(message);
           console.error('Error loading categories:', error);
           return of([]);
         })
@@ -79,10 +89,13 @@ export class ProductsService {
   }
 
   getPriceRange(): Observable<{ min: number; max: number }> {
+    this.loadingSignal.set(true);
+    this.errorSignal.set(null);
     return this.http
       .get<Product[]>(`${this.apiUrl}/products`)
       .pipe(
         map((products) => {
+          this.loadingSignal.set(false);
           if (products.length === 0) {
             return { min: 0, max: 1000 };
           }
@@ -93,7 +106,13 @@ export class ProductsService {
             max: Math.max(...prices),
           };
         }),
-        catchError((error) => {
+        catchError((error: unknown) => {
+          this.loadingSignal.set(false);
+          const message =
+            error instanceof Error
+              ? error.message
+              : 'An error occurred while loading the price range';
+          this.errorSignal.set(message);
           console.error('Error loading price range:', error);
           return of({ min: 0, max: 1000 });
         })
