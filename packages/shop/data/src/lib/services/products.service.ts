@@ -24,6 +24,7 @@ export class ProductsService {
     return this.http
       .get<Product[]>(`${this.apiUrl}/products`)
       .pipe(
+ 
         map((products) => {
           this.loadingSignal.set(false);
           return products;
