@@ -24,7 +24,6 @@ export class ProductsService {
     return this.http
       .get<Product[]>(`${this.apiUrl}/products`)
       .pipe(
- 
         map((products) => {
           this.loadingSignal.set(false);
           return products;
@@ -49,9 +48,9 @@ export class ProductsService {
     return this.http
       .get<Product>(`${this.apiUrl}/products/${id}`)
       .pipe(
-        map((response) => {
+        map((product) => {
           this.loadingSignal.set(false);
-          return response;
+          return product;
         }),
         catchError((error: unknown) => {
           this.loadingSignal.set(false);
@@ -84,6 +83,52 @@ export class ProductsService {
               : 'An error occurred while loading categories';
           this.errorSignal.set(message);
           console.error('Error loading categories:', error);
+          return of([]);
+        })
+      );
+  }
+
+  getProductsByCategory(categoryId: number): Observable<Product[]> {
+    this.loadingSignal.set(true);
+    this.errorSignal.set(null);
+    return this.http
+      .get<Product[]>(`${this.apiUrl}/products/category/${categoryId}`)
+      .pipe(
+        map((products) => {
+          this.loadingSignal.set(false);
+          return products;
+        }),
+        catchError((error: unknown) => {
+          this.loadingSignal.set(false);
+          const message =
+            error instanceof Error
+              ? error.message
+              : 'An error occurred while loading products by category';
+          this.errorSignal.set(message);
+          console.error('Error loading products by category:', error);
+          return of([]);
+        })
+      );
+  }
+
+  getProductsByPriceRange(min: number, max: number): Observable<Product[]> {
+    this.loadingSignal.set(true);
+    this.errorSignal.set(null);
+    return this.http
+      .get<Product[]>(`${this.apiUrl}/products/price-range?min=${min}&max=${max}`)
+      .pipe(
+        map((products) => {
+          this.loadingSignal.set(false);
+          return products;
+        }),
+        catchError((error: unknown) => {
+          this.loadingSignal.set(false);
+          const message =
+            error instanceof Error
+              ? error.message
+              : 'An error occurred while loading products by price range';
+          this.errorSignal.set(message);
+          console.error('Error loading products by price range:', error);
           return of([]);
         })
       );
